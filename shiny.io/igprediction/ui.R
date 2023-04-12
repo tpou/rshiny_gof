@@ -1,15 +1,12 @@
-
-load(url("https://s3.us-east-2.amazonaws.com/aiprediction/Dashboard.RData"))
-# Deploy app:
-# library(rsconnect)
-#rsconnect::deployApp('path/to/your/app')
-
 library(ggplot2)
 library(reshape2)
 library(shiny)
 library(shinydashboard)
 library(plotly)
 
+load(url("https://s3.us-east-2.amazonaws.com/aiprediction/Dashboard.RData"))
+load(url("https://s3.us-east-2.amazonaws.com/aiprediction/Summary.RData"))
+load(url("https://s3.us-east-2.amazonaws.com/aiprediction/DrillingSchedule.RData"))
 Dashboard2<- melt(Dashboard,id.vars="Date",measure.vars=c("N","W","S","OT"))
 #----------------------------------------------------------------------------------------------------------------------------
 dbHeader <- dashboardHeader(titleWidth=250)
@@ -33,6 +30,7 @@ ui <- dashboardPage(skin="black",
                                        menuItem("Model", tabName = "model", icon = icon("cogs")),
                                        menuItem("Production Allocation", tabName ="prodallocation", icon = icon("")),
                                        menuItem("Decline Curve", tabName ="declinecurve", icon = icon("chart-line")),
+                                       menuItem("Statistical Regression",tabName="statistic", icon=icon("brain")),
                                        menuItem("Machine Learning", tabName = "machinelearning", icon = icon("brain"))
                                      ) # end sidebarMenu              
                                      
@@ -53,17 +51,19 @@ ui <- dashboardPage(skin="black",
                                         tabPanel("Plot",
                                                  fluidRow(
                                                    column(width = 6,
-                                                          plotOutput("plot1")),
+                                                          plotlyOutput("plot1"),
+                                                          verbatimTextOutput("event1")),
                                                    column(width = 6,
-                                                          plotOutput("plot2"))
-                                                   
+                                                          plotlyOutput("plot2")),
+                                                   verbatimTextOutput(("event2"))
                                                  ),
                                                  fluidRow(
                                                    column(width = 6,
-                                                          plotOutput("plot3")),
+                                                          plotlyOutput("plot3"),
+                                                          verbatimTextOutput("event3")),
                                                    column(width = 6,
-                                                          plotlyOutput("plot5"),
-                                                          verbatimTextOutput("event"))                                      
+                                                          plotlyOutput("plot4"),
+                                                          verbatimTextOutput("event4"))                                      
                                                  )
                                         ),
                                         tabPanel("Summary"),
@@ -81,8 +81,11 @@ ui <- dashboardPage(skin="black",
                         ),
                         #--------------------------------------------------------------------------------------------------------------
                         tabItem( tabName ="schedule",
-                                 h2("Schedule")
+                                 h2("Drilling Schedule"),
+                                 plotlyOutput("plot5"),
+                                 verbatimTextOutput("event5") 
                         ),
+                        #--------------------------------------------------------------------------------------------------------------
                         tabItem( tabName ="model",
                                  h2("Model")
                         ),
@@ -92,8 +95,11 @@ ui <- dashboardPage(skin="black",
                         tabItem( tabName ="declinecurve",
                                  h2("Machine Learning")
                         ),
-                        tabItem( tabName ="machinelearning"
-                                 
+                        tabItem( tabName ="statistic",
+                                 h2("Statistical Regression")     
+                        ),
+                        tabItem( tabName ="machinelearning",
+                                 h2(" Machine Learning")
                         )
                         
                       )

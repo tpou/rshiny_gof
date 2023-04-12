@@ -1,0 +1,12 @@
+name: igprediction2
+title: igprediction
+username:
+account: aiprediction
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 513055
+bundleId: 1641741
+url: https://ai-ml.shinyapps.io/igprediction2/
+when: 1539500868.81593
+asMultiple: FALSE
+asStatic: FALSE
