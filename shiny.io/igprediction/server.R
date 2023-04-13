@@ -4,9 +4,9 @@ library(shiny)
 library(shinydashboard)
 library(plotly)
 
-load(url("https://s3.us-east-2.amazonaws.com/aiprediction/Dashboard.RData"))
-load(url("https://s3.us-east-2.amazonaws.com/aiprediction/Summary.RData"))
-load(url("https://s3.us-east-2.amazonaws.com/aiprediction/DrillingSchedule.RData"))
+load(url("https://rshiny.s3.ap-southeast-1.amazonaws.com/Dashboard.RData"))
+load(url("https://rshiny.s3.ap-southeast-1.amazonaws.com/Summary.RData"))
+load(url("https://rshiny.s3.ap-southeast-1.amazonaws.com/DrillingSchedule.RData"))
 
 Dashboard2<- melt(Dashboard,id.vars="Date",measure.vars=c("N","W","S","OT"))
 
