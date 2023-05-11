@@ -8,6 +8,9 @@
 #
 
 library(shiny)
+library(ggplot2)
+library(DT)
+library(tibble)
 
 # Define UI for application that draws a histogram
 fluidPage(
@@ -19,30 +22,42 @@ fluidPage(
     sidebarLayout(
       
       sidebarPanel(
-        fileInput("upload", "Choose CSV File",
+        fileInput("file", "Choose CSV File",
                   accept = c(
                     "text/csv",
                     "text/comma-separated-values,text/plain",
                     ".csv")
         ), #end_fileInput
-        numericInput("n", "Rows", value=5, min=1, step=1),
+        
         DTOutput("mytable"),
         
         tags$hr(),
+        
         checkboxInput("header", "Header", TRUE),
         actionButton("myButton","Plot"),
         actionButton('myButtongo', 'Update')
       ), #end_sidebarPanel
       
       mainPanel(
-      DT::dataTableOutput("head"),
-      plotOutput('myplot'),
-      plotOutput('myplot2')
+        tabsetPanel(
+          tabPanel("Table",DT::dataTableOutput("head")),
+          tabPanel("Plot",plotOutput('myplot')),
+          tabPanel("Plot Update", plotOutput('myplot2'))
+        )
       )
       #mainPanel(
       #  fluidRow(
       #          column(6, dt_output('Test','contents')),
       #          column(6, plotOutput('x1', height = 500))
       #  )
-      ) #end_mainPanel
+      ), #end_mainPanel
+    # Define JavaScript code to handle cell clicks ----
+    tags$script('
+    $(document).on("click", "#DataTables_Table_1 td", function() {
+      var col_idx = $(this).index();
+      var row_idx = $(this).parent().index();
+      Shiny.setInputValue("cell_edit", [row_idx, col_idx]);
+    });
+  ')
+
 )
