@@ -12,22 +12,37 @@ library(shiny)
 # Define UI for application that draws a histogram
 fluidPage(
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins
+    title = 'Goodness of Fit',
+    
+    h1('Test'),
+    
     sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-            plotOutput("distPlot")
-        )
-    )
+      
+      sidebarPanel(
+        fileInput("upload", "Choose CSV File",
+                  accept = c(
+                    "text/csv",
+                    "text/comma-separated-values,text/plain",
+                    ".csv")
+        ), #end_fileInput
+        numericInput("n", "Rows", value=5, min=1, step=1),
+        DTOutput("mytable"),
+        
+        tags$hr(),
+        checkboxInput("header", "Header", TRUE),
+        actionButton("myButton","Plot"),
+        actionButton('myButtongo', 'Update')
+      ), #end_sidebarPanel
+      
+      mainPanel(
+      DT::dataTableOutput("head"),
+      plotOutput('myplot'),
+      plotOutput('myplot2')
+      )
+      #mainPanel(
+      #  fluidRow(
+      #          column(6, dt_output('Test','contents')),
+      #          column(6, plotOutput('x1', height = 500))
+      #  )
+      ) #end_mainPanel
 )
