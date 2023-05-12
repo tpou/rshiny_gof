@@ -10,7 +10,7 @@
 library(shiny)
 library(ggplot2)
 library(DT)
-library(tibble)
+library(tidyverse)
 
 # Define UI for application that draws a histogram
 fluidPage(
@@ -24,6 +24,8 @@ fluidPage(
       fileInput("file", "Choose CSV File", accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
     ),
       checkboxInput("header","Header", TRUE),),
+      selectInput("column1", "Select X Column", NULL),
+      selectInput("column2", "Select Y Column", NULL)
     
     mainPanel(
       tabsetPanel(
