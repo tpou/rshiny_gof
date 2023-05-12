@@ -21,7 +21,9 @@ function(input, output, session) {
   # Load CSV file into the reactive data object
   observeEvent(input$file, {
     req(input$file)
-    values$data <- read.csv(input$file$datapath, header=input$header)
+    values$data <- read.csv(input$file$datapath, header=input$header, sep=",")
+    updateSelectInput(session, "column1", choices=names(values$data))
+    updateSelectInput(session, "column2", choices=names(values$data))
   })
   
   # Display the contents of the uploaded CSV file in an editable DT table
@@ -34,7 +36,9 @@ function(input, output, session) {
   # Create a plot of the uploaded CSV data using ggplot2 and dynamically update the plot
   output$plot <- renderPlot({
     req(values$data)
-    ggplot(values$data, aes(x = x, y = y)) + 
+      x_col <- grep(input$column1,colnames(values$data))
+      y_col <- grep(input$column2,colnames(values$data))
+    ggplot(values$data, aes(x=values$data[[x_col]], values$data[[y_col]])) + 
       geom_point() +
       labs(x = "X", y = "Y", title = "Uploaded CSV Data Plot")
   })
@@ -52,7 +56,9 @@ function(input, output, session) {
     # Update the plot when the table is edited
     output$plot <- renderPlot({
       req(values$data)
-      ggplot(values$data, aes(x = x, y = y)) + 
+      x_col <- grep(input$column1,colnames(values$data))
+      y_col <- grep(input$column2,colnames(values$data))
+      ggplot(values$data, aes(x=values$data[[x_col]], values$data[[y_col]])) + 
         geom_point() +
         labs(x = "X", y = "Y", title = "Uploaded CSV Data Plot")
     })
