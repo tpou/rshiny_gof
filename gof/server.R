@@ -15,6 +15,10 @@ library(fitdistrplus)
 library(EnvStats)
 library(plotly)
 library(viridis)
+library(readxl)
+library(dataMaid)
+library(DataExplorer)
+library(SmartEDA)
 # define goodness of fitness function
 gof_fit <- function(data, dist_type, test_type){ 
   
@@ -37,13 +41,88 @@ function(input, output, session) {
   # Load CSV file into the reactive data object
   observeEvent(input$file, {
     req(input$file)
-    values$data <- read.csv(input$file$datapath, header=input$header, sep=",")
+    if (input$filetype == 'CSV') {
+        infilename = input$file$name
+        print(infilename)
+        values$data <- read.csv(input$file$datapath, header=input$header, sep=",")
+      } else {
+        values$data <- read_excel(input$file$datapath,1)
+      }
+    
+    
     updateSelectInput(session, "column1_tabcdf", choices=names(values$data))
     updateSelectInput(session, "column1_tabplot", choices=names(values$data))
     updateSelectInput(session, "column2_tabplot", choices=names(values$data))
     updateSelectInput(session, "column3_tabplot", choices=names(values$data))
     updateSelectInput(session, "column4_tabplot", choices=names(values$data))
     })
+  
+  # render Print data summary
+  output$datadescript <- renderPrint({
+    req(values$data)
+    datasummary <- summary(values$data)
+    print(datasummary)
+  })
+  
+  # generate data report - maid
+  observeEvent(input$report_maid, {
+    req(values$data)
+    withProgress(message="PROCESSING...", value=0, {
+      incProgress(1/2)
+      tryCatch({
+        makeDataReport(values$data, output='html', file="report",reportTitle="", openResult=FALSE, replace=TRUE)
+        print("succesful creating report")  
+      }, error = function(err) {
+        output$error <- renderPrint({
+          print(paste("MY_ERROR: ", err))
+        })
+      })
+    
+    })
+    output$report <- renderUI({
+      includeHTML("report.html")
+    })
+  })
+  
+  # generate data report - explorer
+  observeEvent(input$report_explorer, {
+    req(values$data)
+    withProgress(message="PROCESSING...", value=0, {
+      incProgress(1/2)
+      tryCatch({
+        create_report(values$data)
+        print("succesful creating report") 
+      }, error=function(err) {
+        output$error <- renderPrint({
+          print(paste("MY_ERROR: ", err))
+        })
+      })
+    })
+    output$report <- renderUI({
+      
+      includeHTML("C:/Users/tienpn/rshiny/gof/report.html")
+    })
+  })  
+
+  # generate data report - explorer
+  observeEvent(input$report_smart, {
+    req(values$data)
+    withProgress(message="PROCESSING....", value=0, {
+      incProgress(1/2)
+      tryCatch({
+        ExpReport(values$data, op_file='report.html', label="Smart Data Report", theme=theme_update())
+        print("succesful creating report")
+      }, error=function(err) {
+        output$error <- renderPrint({
+          print(paste("MY_ERROR: ", err))
+        })
+      })
+
+    })
+    output$report <- renderUI({
+      includeHTML("C:/Users/tienpn/rshiny/gof/report.html")
+    })
+  })  
   
   # Display the contents of the uploaded CSV file in an editable DT table
   output$table <- DT::renderDataTable({
