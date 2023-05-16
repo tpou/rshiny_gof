@@ -23,12 +23,22 @@ ui <- dashboardPage(skin="black",
                                        tabPanel("Data Load",
                                                 sidebarLayout(
                                                   sidebarPanel(
-                                                    fileInput("file", "Choose CSV File", accept = ".csv")
+                                                    fileInput("file", "Choose Excel/CSV File", accept = c(".csv",".xlsx",".xls"))
                                                   ),
                                                   mainPanel(
-                                                  checkboxInput("header","Header", TRUE)))
+                                                  checkboxInput("header","Header", TRUE),
+                                                  selectInput("filetype", "File Type", choices=list("EXCEL", "CSV"))))
                                                 ),
                                        tabPanel("Data Description",
+                                                h4("Data Summary"),
+                                                verbatimTextOutput("datadescript"),
+                                                h4("Data Report"),
+                                                actionButton("report_maid","Generate Data Maid Report", class="btn-success"),
+                                                actionButton("report_explorer","Generate Data Explorer", class="btn-primary", style="color:white;margin-right:5px;"),
+                                                actionButton("report_smart","Generate Data Smart", class="btn-warning", style="color:white;margin-right:5px;"),
+                                                verbatimTextOutput("error"),
+                                                htmlOutput("report")
+                                
                                                 ),
                                        tabPanel("Data Table",
                                                 h4("This Table is editable."),
@@ -39,6 +49,7 @@ ui <- dashboardPage(skin="black",
                                 
                                                 DT::dataTableOutput("table")),
                                        tabPanel("Data Plot",
+                                                h3("Scatter Plot"),
                                                 h5("X and Y are selected from dropdown menus below."),
                                                 fluidRow(
                                                 column(width = 3,selectInput("column1_tabplot", "Select X axis", NULL)),
@@ -46,7 +57,8 @@ ui <- dashboardPage(skin="black",
                                                 column(width = 3,selectInput("column3_tabplot", "Size", NULL)), 
                                                 column(width = 3,selectInput("column4_tabplot", "Fill", NULL))),# end fluidRow
                                                 plotlyOutput("plot", height=600)),
-                                       tabPanel("CDF Comp",
+                                       tabPanel("CDF Composite",
+                                                h3("Cumulative Density Function"),
                                                 fluidRow(
                                                 column(width = 3,selectInput("column1_tabcdf", "Univariate Parameter", NULL))  
                                                 ), # end fluidRow
@@ -54,13 +66,13 @@ ui <- dashboardPage(skin="black",
                                                 h5("The empirical CDF showed in black dotted-line indicating the actual data, in comparision with other theoretical CDFs which computed from normal and lognormal parameters.",style="color:black;"),
                                                 h5("The plot can be used to quickly interpret which distribution type could be matched the data.",style="color:green;"),
                                                 plotOutput("plot1",width=800, height=600)),
-                                       tabPanel("Goodness of Fitness",
+                                       tabPanel("Goodness of Fit",
                                                 h4("Goodness of Fit Test", style="color:green;"),
                                                 h5("Data is selected from the tab CDF Comp > Univariate Paramter"),
                            
                                                 fluidRow(
                                                   column(width = 3,selectInput("column1_tabgof","Distribution",c("Normal"="norm","LogNormal"="lnorm","Gamma"="gamma","Exponential"="exp"))),
-                                                  column(width = 3,selectInput("column2_tabgof", "Statistical Test Method",c("Chi-square"="chisq")))
+                                                  column(width = 3,selectInput("column2_tabgof", "Statistical Method",c("Chi-square"="chisq")))
                                               
                                                   ),
                                                 h4("Visual Check:",style="color:red;"),
@@ -105,4 +117,3 @@ ui <- dashboardPage(skin="black",
 #         )
 #     )
 #   )
-
