@@ -29,33 +29,42 @@ ui <- dashboardPage(skin="black",
                                                   checkboxInput("header","Header", TRUE),
                                                   selectInput("filetype", "File Type", choices=list("EXCEL", "CSV"))))
                                                 ),
+                                       tabPanel("Data Table",
+                                                h4("This Table is editable."),
+                                                h5("How: Double-click on individual data cell to make change."),
+                                                h6("Plots and analysis in the subsequent tabs are updated interactively !!!"),
+                                                fluidRow(
+                                                  column(width = 4, selectInput('first_filter', "Filter by Column:", NULL)),
+                                                  column(width = 4, selectInput('first_filter_value', 'Value:',NULL))
+                                                ),
+                                                tags$style("h6{color: red; font-style:italic;}","h5{color:blue}"),
+                                                
+                                                DT::dataTableOutput("table")),
                                        tabPanel("Data Description",
                                                 h4("Data Summary"),
                                                 verbatimTextOutput("datadescript"),
                                                 h4("Data Report"),
-                                                actionButton("report_maid","Generate Data Maid Report", class="btn-success"),
-                                                actionButton("report_explorer","Generate Data Explorer", class="btn-primary", style="color:white;margin-right:5px;"),
-                                                actionButton("report_smart","Generate Data Smart", class="btn-warning", style="color:white;margin-right:5px;"),
+                                                fluidRow(
+                                                  column(width = 4, actionButton("report_maid","Generate Data Maid Report", class="btn-success")),
+                                                  column(width = 4, actionButton("report_explorer","Generate Data Explorer", class="btn-primary", style="color:white;")),
+                                                  column(width = 4, actionButton("report_smart","Generate Data Smart", class="btn-warning", style="color:white;"))
+                                                ),
+                                                #actionButton("report_maid","Generate Data Maid Report", class="btn-success"),
+                                                #actionButton("report_explorer","Generate Data Explorer", class="btn-primary", style="color:white;margin-right:5px;"),
+                                                #actionButton("report_smart","Generate Data Smart", class="btn-warning", style="color:white;margin-right:5px;"),
                                                 verbatimTextOutput("error"),
                                                 htmlOutput("report")
                                 
                                                 ),
-                                       tabPanel("Data Table",
-                                                h4("This Table is editable."),
-                                                
-                                                h5("How: Double-click on individual data cell to make change."),
-                                                h6("Plots and analysis in the subsequent tabs are updated interactively !!!"),
-                                                tags$style("h6{color: red; font-style:italic;}","h5{color:blue}"),
-                                
-                                                DT::dataTableOutput("table")),
-                                       tabPanel("Data Plot",
+                                       tabPanel("Data Viz",
+                                                h2("Univariate"),
                                                 h3("Scatter Plot"),
                                                 h5("X and Y are selected from dropdown menus below."),
                                                 fluidRow(
+                                            
                                                 column(width = 3,selectInput("column1_tabplot", "Select X axis", NULL)),
                                                 column(width = 3,selectInput("column2_tabplot", "Select Y axis", NULL)),
-                                                column(width = 3,selectInput("column3_tabplot", "Size", NULL)), 
-                                                column(width = 3,selectInput("column4_tabplot", "Fill", NULL))),# end fluidRow
+                                                column(width = 3,selectInput("column3_tabplot", "Size", NULL))),# end fluidRow
                                                 plotlyOutput("plot", height=600)),
                                        tabPanel("CDF Composite",
                                                 h3("Cumulative Density Function"),
@@ -71,19 +80,27 @@ ui <- dashboardPage(skin="black",
                                                 h5("Data is selected from the tab CDF Comp > Univariate Paramter"),
                            
                                                 fluidRow(
-                                                  column(width = 3,selectInput("column1_tabgof","Distribution",c("Normal"="norm","LogNormal"="lnorm","Gamma"="gamma","Exponential"="exp"))),
-                                                  column(width = 3,selectInput("column2_tabgof", "Statistical Method",c("Chi-square"="chisq")))
+                                                  column(width = 3,selectInput("column1_tabgof","Distribution",c("Normal"="norm","LogNormal"="lnorm","Gamma"="gamma","Exponential"="exp","Binominal"="bninorm","Uniform"="unif"))),
                                               
                                                   ),
                                                 h4("Visual Check:",style="color:red;"),
                                                 h5("From left-right and top-bottom are histogram, quantile-quantile (Q-Q), cumulative density function, and probability-probability plots."),
                                                 plotOutput("plot2", height=800),
                                                 h4("Statistical Test:",style="color:red;"),
+                                                selectInput("column2_tabgof", "Statistical Method",c("Chi-square"="chisq","Shapiro-Wilk"="sw","Kolmogorov-Smirnov"="ks")),
                                                 h5("Goodness-of-Fit Test is interpreted using Null Hypothesis."),
                                                 h5("p-value is computed from statistical test method and to compare with significance level [alpha], hereby is set to 0.05 to make inferrence on hythothesis.",style="font-style:italic;"),
                                                 h5("If p-value > 0.05, it can be inferred that the sample data is generated from a selected theoretical distribution.",style="color:green;"),
                                                 verbatimTextOutput("fitdist")),
                                
+                                       tabPanel("Markdown",
+                                                h4("Distribution"),
+                                                h5("Normal Distribution"),
+                                                h5("Binominal Distribution"),
+                                                h5("Uniform Distribution"),
+                                                h5("Gamma Distribution"),
+                                                h5("Null Hypothesis"),
+                                                uiOutput("markdown"))
  
                                        ) # end tabBox
                                 )
