@@ -61,18 +61,26 @@ function(input, output, session) {
       }
 
     updateSelectInput(session, "column1_tabcdf", choices=names(values$data))
+    updateSelectInput(session, "column1_univ", choices=names(values$data))
+    updateSelectInput(session, "column2_univ", choices=names(values$data))
     updateSelectInput(session, "column1_tabplot", choices=names(values$data))
     updateSelectInput(session, "column2_tabplot", choices=names(values$data))
     updateSelectInput(session, "column3_tabplot", choices=names(values$data))
     updateSelectInput(session, "column4_tabplot", choices=names(values$data))
     updateSelectInput(session, "first_filter", choices=c("All",names(values$data)))
+    updateSelectInput(session, "second_filter", choices=c("All",names(values$data)))
     #updateSelectInput(session, "first_filter", choices=c("All",unique(values$data[,2]))) # test: CWN
     })
   
-  # update value filter
+  # update value filter of first column
   observeEvent(input$first_filter, {
     colidx = grep(input$first_filter,colnames(values$data))
     updateSelectInput(session, "first_filter_value", choices=c("All",unique(values$data[,colidx])))
+  })
+  # update value filter of second column
+  observeEvent(input$second_filter, {
+    colidx = grep(input$second_filter,colnames(values$data))
+    updateSelectInput(session, "second_filter_value", choices=c("All",unique(values$data[,colidx])))
   })
   
   # filter data
@@ -82,6 +90,12 @@ function(input, output, session) {
       if (input$first_filter_value !="All") {
         colidx = grep(input$first_filter,colnames(values$data))
         filtered <- filtered[filtered[,colidx] == input$first_filter_value, ]
+        if (input$second_filter !="All") {
+          if (input$second_filter_value !="All") {
+            colidx2 = grep(input$second_filter, colnames(values$data))
+            filtered <- filtered[filtered[,colidx2] == input$second_filter_value,]
+          }
+        }
       }
     }
     filtered 
@@ -166,7 +180,41 @@ function(input, output, session) {
   
   
   # Create a plot of the uploaded CSV data using ggplot2 and dynamically update the plot
-  output$plot <- renderPlotly({
+  output$plotviz1 <- renderPlotly({
+  req(filtered_data())
+    selected_col <- grep(input$column1_univ, colnames(values$data))
+    selected_data <- filtered_data()[c(selected_col)]
+
+    selected_data <- as.data.frame(na.omit(selected_data))
+
+    # drop na and 0 values
+    selected_data <- as.data.frame(selected_data[apply(selected_data,1, function(x) all(x!=0)),])
+    g <- ggplot(selected_data, aes(x=selected_data[[1]])) + 
+      geom_histogram(aes(y=..density..),bins=input$number_of_bins, color='lightblue',fill='green',alpha=0.1) +
+      geom_density(data=NULL,stat='density',color="red",bw="nrd0") 
+      
+    ggplotly(g)
+  })
+  
+  output$plotviz1.2 <- renderPlotly({
+    req(filtered_data())
+    selected_col1 <- grep(input$column1_univ, colnames(values$data))
+    selected_col2 <- grep(input$column2_univ, colnames(values$data))
+    selected_data <- filtered_data()[c(selected_col1,selected_col2)]
+    
+    selected_data <- as.data.frame(na.omit(selected_data))
+    
+    # drop na and 0 values
+    selected_data <- as.data.frame(selected_data[apply(selected_data,1, function(x) all(x!=0)),])
+    
+    g <- ggplot(selected_data, aes(x=selected_data[[1]], fill=selected_data[[2]])) + 
+         geom_density(data=NULL,stat='density',alpha=0.3) 
+    g <- g + scale_color_brewer(palette="Accent") + theme_minimal()
+    
+    ggplotly(g)
+  })
+  
+  output$plotviz2 <- renderPlotly({
     req(filtered_data())
       x_col <- grep(input$column1_tabplot,colnames(filtered_data()))
       y_col <- grep(input$column2_tabplot,colnames(filtered_data()))
@@ -176,21 +224,27 @@ function(input, output, session) {
                                 text=paste(input$column1_tabplot,":",filtered_data()[[x_col]],input$column2_tabplot,":",filtered_data()[[y_col]]))) + 
       geom_point(shape=21,color="black",fill="pink", stroke=0.5, alpha=0.8) +
       scale_fill_viridis(discrete=FALSE, guide=FALSE, option="A") +
-      labs(x = input$column1_tabplot, y = input$column2_tabplot, title = "Data Plot")
+      labs(x = input$column1_tabplot, y = input$column2_tabplot, title = "Data Plot") +
+      theme_bw()
     ggplotly(g1, tooltip="text")
   })
   
   # Create CDF composite plot
   output$plot1 <- renderPlot({
-    req(values$data)
+    req(filtered_data())
     tryCatch({
-      fit_data <- grep(input$column1_tabcdf, colnames(values$data))
-      print(fit_data)
-      fit_norm <- fitdist(values$data[[fit_data]], "norm")
-      fit_logn <- fitdist(values$data[[fit_data]], "lnorm")
-      #fit_gama <- fitdist(values$data[[fit_data]], "gamma")
-      #fit_exp <- fitdist(values$data[[fit_data]], "exp")
-      cdfcomp(list(fit_norm, fit_logn),fitlty=c(2,6),fitcol=c("blue","green"),fitlwd=c(4,4),legendtext = c("Normal","LogNormal"))
+      selected_col <- grep(input$column1_tabcdf, colnames(values$data))
+      selected_data <- filtered_data()[[selected_col]]
+      # omit na
+      selected_data <- as.data.frame(na.omit(selected_data))
+      # drop na and 0 values
+      selected_data <- selected_data[apply(selected_data,1, function(x) all(x!=0)),]
+
+      fit_norm <- fitdist(selected_data, "norm")
+      fit_logn <- fitdist(selected_data, "lnorm")
+      fit_gama <- fitdist(selected_data, "gamma")
+      fit_exp <- fitdist(selected_data, "exp")
+      cdfcomp(list(fit_norm, fit_logn, fit_gama, fit_exp),fitlty=c(2,6,4,8),fitcol=c("blue","green","red","cyan"),fitlwd=c(4,4,4,4),legendtext = c("Normal","LogNormal","Gamma","Exp"))
     }, error=function(err){
       output$error2 <- renderPrint({
         print(paste("MY_ERROR: ", err))
@@ -200,18 +254,36 @@ function(input, output, session) {
   
   # Create the plot2-GoF when the data is selected
   output$plot2 <- renderPlot({
-    req(values$data)
-    fit_data <- grep(input$column1_tabcdf,colnames(values$data))
-    fit_dist <- fitdist(values$data[[fit_data]],input$column1_tabgof)
-    
-    plot(fit_dist)
+    req(filtered_data())
+    tryCatch({
+      selected_col <- grep(input$column1_tabcdf,colnames(values$data))
+      selected_data <- filtered_data()[[selected_col]]
+      # omit na
+      selected_data <- as.data.frame(na.omit(selected_data))
+      # drop na and 0 values
+      selected_data <- selected_data[apply(selected_data,1, function(x) all(x!=0)),]
+      
+      fit_dist <- fitdist(selected_data,input$column1_tabgof)
+      plot(fit_dist)
+      
+    }, error=function(err) {
+      output$error3 < renderPrint({
+        print(paste("MY_ERROR: ", err))
+      })
+    })
   })
   
   # render Print data of GOF
   output$fitdist <- renderPrint({
-    req(values$data)
-    fit_data <- grep(input$column1_tabcdf,colnames(values$data))
-    gof = gofTest(values$data[[fit_data]],distribution = input$column1_tabgof, test = input$column2_tabgof)
+    req(filtered_data())
+    selected_col <- grep(input$column1_tabcdf,colnames(values$data))
+    selected_data <- filtered_data()[[selected_col]]
+    # omit na
+    selected_data <- as.data.frame(na.omit(selected_data))
+    # drop na and 0 values
+    selected_data <- selected_data[apply(selected_data,1, function(x) all(x!=0)),]
+    
+    gof = gofTest(selected_data,distribution = input$column1_tabgof, test = input$column2_tabgof)
     print(gof)
     #tagList('Test',"B", gof_prt)
     #print(gof);
