@@ -69,9 +69,26 @@ function(input, output, session) {
     updateSelectInput(session, "column4_tabplot", choices=names(values$data))
     updateSelectInput(session, "first_filter", choices=c("All",names(values$data)))
     updateSelectInput(session, "second_filter", choices=c("All",names(values$data)))
+    updateSelectInput(session, "column1_tabinput", choices=names(values$data))
+    updateSelectInput(session, "column2_tabinput", choices=names(values$data))
+    updateSelectInput(session, "column3_tabinput", choices=names(values$data))
+    updateSelectInput(session, "column4_tabinput", choices=names(values$data))
     #updateSelectInput(session, "first_filter", choices=c("All",unique(values$data[,2]))) # test: CWN
     })
-  
+
+  # Monte Carlo Simulation
+  observeEvent(input$dist_var1, { # update param table set from selecting distribution for var 1
+    updateTabsetPanel(inputId="params1", selected=input$dist_var1)
+  })
+  observeEvent(input$dist_var2, { # update param table set from selecting distribution for var 1
+    updateTabsetPanel(inputId="params2", selected=input$dist_var2)
+  }) 
+  observeEvent(input$dist_var3, { # update param table set from selecting distribution for var 1
+    updateTabsetPanel(inputId="params3", selected=input$dist_var3)
+  }) 
+  observeEvent(input$dist_var4, { # update param table set from selecting distribution for var 1
+    updateTabsetPanel(inputId="params4", selected=input$dist_var4)
+  }) 
   # update value filter of first column
   observeEvent(input$first_filter, {
     colidx = grep(input$first_filter,colnames(values$data))
@@ -294,12 +311,48 @@ function(input, output, session) {
     tagList("URL Link: ", a("Google page", href="https://www.google.com"))
   })
   
+  sample1 <- reactive({
+    switch(input$dist_var1,
+           normal = rnorm(input$n, input$mean1,input$sd1),
+           uniform = runif(input$n, input$min1, input$max1),
+           exponential = rexp(input$n, input$rate1))
+  })
+  sample2 <- reactive({
+    switch(input$dist_var2,
+           normal = rnorm(input$n, input$mean2,input$sd2),
+           uniform = runif(input$n, input$min2, input$max2),
+           exponential = rexp(input$n, input$rate2))
+  })
+  sample3 <- reactive({
+    switch(input$dist_var3,
+           normal = rnorm(input$n, input$mean3,input$sd3),
+           uniform = runif(input$n, input$min3, input$max3),
+           exponential = rexp(input$n, input$rate3))
+  })
+  sample4 <- reactive({
+    switch(input$dist_var4,
+           normal = rnorm(input$n, input$mean4,input$sd4),
+           uniform = runif(input$n, input$min4, input$max4),
+           exponential = rexp(input$n, input$rate4))
+  })
+  sample_result <- reactive({
+    result <- sample1() * sample2()
+  })
+  
+  # Monte Carlo Sim
+  output$plot_distr_var1 <- renderPlot(hist(sample1()))
+  output$plot_distr_var2 <- renderPlot(hist(sample2()))
+  output$plot_distr_var3 <- renderPlot(hist(sample3()))
+  output$plot_distr_var4 <- renderPlot(hist(sample4()))
+  
+  output$plot_result_mc <- renderPlot(hist(sample_result()))
   # Update the uploaded data when the user makes changes to the table
   observeEvent(input$table_cell_edit, {
     info <- input$table_cell_edit
     row_idx <- info$row 
     col_idx <- info$col + 1
     value <- info$value
+    
     
   # Update the data object using reactiveValues
   values$data[row_idx, col_idx] <- value
