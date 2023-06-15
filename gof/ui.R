@@ -6,6 +6,54 @@ library(tidyverse)
 library(shinydashboard)
 library(plotly)
 
+parameter1_tabs <- tabsetPanel( # define flexible params for distr.
+  id = "params1",
+  type = "hidden",
+  tabPanel("normal",
+           numericInput("mean1", "mean", value=0),
+           numericInput("sd1","standard deviation", min=0, value=1)),
+  tabPanel("uniform",
+           numericInput("min1", "min", value=0),
+           numericInput("max1", "max", value=1)),
+  tabPanel("exponential",
+           numericInput("rate1","rate",value=1,min=0))
+)
+parameter2_tabs <- tabsetPanel( # define flexible params for distr.
+  id = "params2",
+  type = "hidden",
+  tabPanel("normal",
+           numericInput("mean2", "mean", value=0),
+           numericInput("sd2","standard deviation", min=0, value=1)),
+  tabPanel("uniform",
+           numericInput("min2", "min", value=0),
+           numericInput("max2", "max", value=1)),
+  tabPanel("exponential",
+           numericInput("rate2","rate",value=1,min=0))
+)
+parameter3_tabs <- tabsetPanel( # define flexible params for distr.
+  id = "params3",
+  type = "hidden",
+  tabPanel("normal",
+           numericInput("mean3", "mean", value=0),
+           numericInput("sd3","standard deviation", min=0, value=1)),
+  tabPanel("uniform",
+           numericInput("min3", "min", value=0),
+           numericInput("max3", "max", value=1)),
+  tabPanel("exponential",
+           numericInput("rate3","rate",value=1,min=0))
+)
+parameter4_tabs <- tabsetPanel( # define flexible params for distr.
+  id = "params4",
+  type = "hidden",
+  tabPanel("normal",
+           numericInput("mean4", "mean", value=0),
+           numericInput("sd4","standard deviation", min=0, value=1)),
+  tabPanel("uniform",
+           numericInput("min4", "min", value=0),
+           numericInput("max4", "max", value=1)),
+  tabPanel("exponential",
+           numericInput("rate4","rate",value=1,min=0))
+)
 # Define UI 
 ui <- dashboardPage(skin="black",
                     dashboardHeader(titleWidth=200),
@@ -14,7 +62,8 @@ ui <- dashboardPage(skin="black",
                                        menuItem("Data Load", tabName= "dataload"),
                                        menuItem("Data View", tabName ="dataview"),
                                        menuItem("Data Viz", tabName = "dataviz"),
-                                       menuItem("Statiscal Test", tabName ="statisticaltest")
+                                       menuItem("Statiscal Test", tabName ="statisticaltest"),
+                                       menuItem("Monte Carlo Simulation", tabName ="montecarlo")
                                      ) # end sidebarMenu
                                      ), # end dashboardSidebar
                     dashboardBody(
@@ -95,12 +144,15 @@ ui <- dashboardPage(skin="black",
                                                  plotlyOutput("plotviz1",height=250)
                                                ),
                                                box(
-                                                 title ='Density v2', status='warning', solidHeader = TRUE,collapsible = TRUE,
+                                                 title ='Density', status='warning', solidHeader = TRUE,collapsible = TRUE,
                                                  selectInput("column2_univ", "Filtered By", NULL),
                                                  plotlyOutput("plotviz1.2",height=250)
                                                )
                                                
-                                             ) # endFluidRow
+                                             ), # endFluidRow
+                                             fluidRow(
+                                               
+                                             )
                                              
                                         ),
                                     tabPanel("Bivariates",
@@ -172,7 +224,74 @@ ui <- dashboardPage(skin="black",
  
                                        ) # end tabBox
                                        )
-                                )
+                                ),
+                        tabItem(tabName="montecarlo",
+                                fluidRow(
+                                  tabBox(
+                                    id = "tabbox5",
+                                    width = 12,
+                                    
+                                    tabPanel("Input",
+                                             fluidRow(
+                                               column(width=2,selectInput("column1_tabinput", "Var 1", NULL)),
+                                               column(width=2,selectInput("column2_tabinput", "Var 2", NULL)),
+                                               column(width=2,selectInput("column3_tabinput", "Var 3", NULL)),
+                                               column(width=2,selectInput("column4_tabinput", "Var 4", NULL))
+                                             ), #endfluidRow
+                                             ),
+                                    tabPanel("Define Distribution",
+                                             fluidRow(
+                                             sidebarPanel(
+                                               width = 4,
+                                               numericInput("n","Number of samples", value=100))
+                                             ),
+                                             fluidRow(
+                                               
+                                               box(
+                                                 title ='Var 1 Distribution', solidHeader = TRUE,collapsible = TRUE,
+                                                 selectInput("dist_var1", "Distribution",
+                                                             choices=c("normal","uniform","exponential")),
+                                               
+                                                 parameter1_tabs,
+                                                 plotOutput("plot_distr_var1")
+                                               ),
+                                               box(
+                                                 title ='Var 2 Distribution', solidHeader = TRUE,collapsible = TRUE,
+                                                 selectInput("dist_var2", "Distribution",
+                                                             choices=c("normal","uniform","exponential")),
+                                                 
+                                                 parameter2_tabs,
+                                                 plotOutput("plot_distr_var2")
+                                               ), 
+                                               box(
+                                                 title ='Var 3 Distribution', solidHeader = TRUE,collapsible = TRUE,
+                                                 selectInput("dist_var3", "Distribution",
+                                                             choices=c("normal","uniform","exponential")),
+                                                 
+                                                 parameter3_tabs,
+                                                 plotOutput("plot_distr_var3")
+                                               ),
+                                               box(
+                                                 title ='Var 4 Distribution', solidHeader = TRUE,collapsible = TRUE,
+                                                 selectInput("dist_var4", "Distribution",
+                                                             choices=c("normal","uniform","exponential")),
+                                                 
+                                                 parameter4_tabs,
+                                                 plotOutput("plot_distr_var4")
+                                               ), 
+                                             ) #endfluidRow
+                                             ),
+                                    tabPanel("Monte Carlo Sim"),
+                                    tabPanel("Result",
+                                             fluidRow(
+                                               box(
+                                                 title='Result',solidHeader=TRUE,collapsible = TRUE,
+                                                 plotOutput("plot_result_mc")
+                                               )
+                                             ))
+                                    
+                                  )
+                                ))
                       )
                     )
                     ) # end dashboardPage
